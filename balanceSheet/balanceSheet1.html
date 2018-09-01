@@ -1,0 +1,632 @@
+<html lang="en">
+<?php 
+			require_once '../secureLogin.php' ;
+			require_once '../config.php';
+?>
+<head>
+	<title>TFP (Wakefield LTD)</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+
+    <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" type="text/css">
+    
+      <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+
+    <link rel='stylesheet' href='../css/style.css'>
+	<script>
+		$(document).ready(function(){
+	            //function verifytoken(){
+                    /**
+                    *  Functon to check token if login was validated 
+                    
+                    *  VARIABLES
+                    *   sessionStorage.getItem("token")    string   Holds the previosly set value of token from when logged in 
+                    *   token                              key-value pair   Data sent to php document to be validated containing token 
+                    
+                    *  ALGORITHM
+                    
+                    *  IF Token doesn't exist in session storage THEN
+                    *       Send user back to login page
+                    *  END IF 
+                    
+                    *  token <- Object(Token)
+                    *  Post token to verifyJWT.php
+                    *  IF JSON.strigify(Token) != true
+                    *       Send user back to login page
+                    *  ELSE
+                    *       Store login data and continue with session
+                    *  END IF 
+                    
+                    */
+                    
+                    // Checks if there's any token at all if tru returns you to login page 
+                    if(sessionStorage.getItem("token") == null){
+                        alert("No token found")
+                        window.location.assign("../first.html")
+                    }
+                    
+                    // creates key-value pair to be posted
+                    var token = {token: sessionStorage.getItem("token")}
+                    // Posting proccess of sending of key-value pair
+                    var posting = $.post("../navigation/verifyJWT.php",
+                            JSON.stringify(token),
+                                        
+                                function(data){
+                            
+                                // If unsuccessful boot user off page
+                                if(data[0] != true) {
+										alert("Invalid token found.");
+                                        window.location.assign("../first.html")
+									}else{
+                                        // Collect login data 
+                                        var logindata = data[1]
+                                      
+                                        
+                                        // store data in sessionStorage for later use 
+                                        sessionStorage.setItem("landlordID", logindata.userId)
+                                        sessionStorage.setItem("loginTime", logindata.loginTime)
+                                        sessionStorage.setItem("loginDate", logindata.loginDate)
+							
+                                        
+										
+									}
+                                })
+                }
+                
+                $("#btnlogout").on("click", function(){
+                /**
+                * Logout function 
+               	*
+                *  VARIABLES
+                *   logout    key-value-pair    holds the boolean value of logout to be posted
+				*   logout    string 			String within logoutdata
+				*   true 	  boolean			value of logoutdata
+                *   data      string            Data returned from post to be verified
+                
+                * ALGORITHM
+                
+                * Logoutdata <- Object(Logout:boolean)
+                
+                * Post Logoutdata to logout.php
+                *   IF Success THEN
+                *       Clear session storage
+                *       Send user to login page
+                *   END IF
+                
+                */
+
+                    var logoutdata = {logout:true}
+                    // Posting to logout.php
+                    var posting = $.post("../logout.php",
+                        JSON.stringify(logoutdata),
+                            // Data returned from logout.php
+                            function(data){
+                                // If logout was success
+                                if(data == "success"){
+                                    // Clear session storage 
+                                    sessionStorage.clear()
+                                    // Go to login screen  
+                                    window.location.assign("../first.html");
+                                // End if 
+                                }
+                            // End function 
+                            })
+            // End of logout function 
+            })
+
+                $("#btnhome").on("click", function(){
+                        // ONCLICK redirect user to navigation page
+                        window.location.assign("../navigation/navigation.html");
+                 })
+            
+                
+
+                $("#search").on("click", function(){
+                        // Search function for carousel
+                        /*
+                        VARIABLES
+                        
+                        input       string      Post code typed into search bar 
+                        
+                        ALGORITHM
+                        
+                        input <- Html search bar input
+                        IF Input is NOT empty THEN 
+                            Create session storage of input with tag "Postcode"
+                        ELSE
+                            Remove session storage of Postcode
+                        END IF 
+                        
+                        Redirect user to balance sheet page 
+                        
+                        */
+                        
+                        // CAPTURE INPUT
+						input = $("#myInput").val()
+						
+                        // Query if input is empty
+                        if(input != null){
+                            // Create session storage
+                            sessionStorage.setItem("Postcode", input)
+                        }else{
+                            // Clear session storage of memory
+                            sessionStorage.removeItem("Postcode")
+                        }
+                        // Refresh page via rediect
+                        window.location.assign("balanceSheet1.html")
+                        
+                        
+						});
+				
+				$("#carousel").on("click", ".editpayments", function(){
+                    // EDIT PAYMENTS button
+                    
+                    /*
+                    VARIABLES 
+                    
+                    id      string      ID of property being inspected by user
+                    
+                    ALGORITHM
+                    
+                    id <-- html attribute
+                    
+                    sessionstorage.setitem(id) <-- id
+                    redirect user to editbalance page
+                    
+                    */
+					id = $(this).attr("id")
+				
+					sessionStorage.setItem("propertyID", id)
+					window.location.assign("editbalance.html")
+					})
+                
+                $("#carousel").on("click", ".balanceproperty", function(){
+                    // View property button
+                    
+                    /*
+                    VARIABLES
+                    
+                    propertyID      string      ID of selected property
+                    
+                    ALGORITHM
+                    
+                    properyID <-- html attribute 
+                    
+                    sessionstorage.setitem(propertyID) <-- propertyID
+                    redirect user to view property page for selected property
+                    
+                    */
+                    propertyID = $(this).val()
+                 
+                    sessionStorage.setItem("propertyID", propertyID)
+                    window.location.assign("../properties/viewproperties.html")
+                
+                })
+                
+                $("#carousel").on("click", ".addpayment", function(){
+                    // Add payment button 
+                    
+                    /*
+                    VARIABLES
+                    
+                    propertyID      string      ID of selected property
+                    
+                    ALGORITHM
+                    
+                    properyID <-- html attribute 
+                    
+                    sessionstorage.setitem(propertyID) <-- propertyID
+                    redirect user to NEW PAYMENT page for selected property
+                    
+                    */
+                    propertyID = $(this).val()
+                 
+                    sessionStorage.setItem("propertyID", propertyID)
+                    window.location.assign("NewPayment.html")
+                
+                })
+            
+            
+            function fillCarousel(){
+				/* 
+				* Purpose of this function is to provide details to fill the carousel containing properties
+				*
+				* VARIABLES
+				* i			integer		holds index of each property to be placed in carousel
+				* each  	string 		string that contains HTML to be sent out to HTML 
+				* item  	string 		string that picks out specific property
+				* out   	string		holds bulk data of the profile of each property in HTML to be posted out into HTML 
+				* namepart 	key 		String which is the key of key-value pair
+				* item 		value 		string which contains a propertyPostCode
+                
+                * ALGORITHM
+                *
+                * i <- 1
+                * each <- ""
+                * IF sessionstorage(Postcode) = "" THEN
+                *   item <-- ""
+                * ELSE
+                *   item <-- sessionSotrage(PostCode)
+                * ENDIF
+                * out <-- ""
+                * namespecific <-- {postcode:item}
+                * posting <-- JSON. stringyfy(namespecific) --> getproperties.php
+                *   FOR each property in properties DO
+                *       Construct table and create slde on coursel and increment i
+                *       each <-- coursel slide number
+                *       out <-- table
+                *       GET payments for each prolperty using getpayments()
+                *       generate balance for each property using balance()
+                *       create edit/add payments buttons and view property button
+                *       OUTPUT OUT
+                *   END FOR 
+                *   
+				
+				
+				*/
+                var i = 1 
+                var each = ""
+                if(sessionStorage.getItem("Postcode") == ""){
+                    var item = ""
+                }else{
+                    var item = sessionStorage.getItem("Postcode")
+                }
+               	
+                var out = ""
+              
+                
+					var namespecific = {postcode:item}
+					var posting = $.post("../properties/getproperties.php",
+							JSON.stringify(namespecific),
+							function(properties){
+
+							$.each( properties, function(key, property){
+                                    each += "<li data-target='#demo' data-slide-to='"+ i +"'></li>"
+                           			out += "<div class='item'>"
+									
+                                    out += "<h3 style='width:100%;'>Property :  "+ property.addressLine1 + " " + property.addressLine2 + " </h3>"
+									out += "<br>"
+                                    out += "<div > Property ID: " + property.propertyID + " </div>"
+									out += "<br>"
+                                    out += "<div> Tenant ID  :  "+ property.tenantID + "</div>"
+                                    out += "<br>"
+                                    out += "<table style='margin-bottom: 100px;' id='" + property.propertyID + "'>"
+                                    
+									var ID = {ID:property.propertyID}
+                            		getpayments(ID)
+                                    
+                             		out += "</table>"
+                                    
+                                    balance(ID, i)
+                                    
+                                    out += "<table class='col-md-8' style='width: 33%; margin-bottom: 100px;' id='" + i + "'>"
+                            		out += "</table>"
+									
+									out += "<button id="+ property.propertyID +" class='editpayments'>Edit payments</button>"
+									out += "<button value="+ property.propertyID +" type='button' class='balanceproperty' id='btnviewproperty' >View property</button>"
+                                    out += "<button value="+ property.propertyID +" type='button' class='addpayment' id='btnaddpayment' >Add payment</button>"
+                                    
+                                    out += "</div>"
+                                    out = out.replace("undefined", "");
+                                    $('#carousel').append(out)
+                                    
+                                 
+                                    
+                                    var out = null
+                                    
+                                    i ++;
+                                  
+                                
+                               
+                        
+								;
+                                
+					})
+                     $("#indicators").append(each)
+                     
+                                           
+				})
+            }
+            function getpayments(ID){
+                // Get payments for property function
+                
+                /*
+                PARAMETERS
+                
+                ID      string      ID of given property
+                
+                VARIABLES
+                
+                pay                 string      Constructor for transaction collum     
+                totalbalance        string      Calculates balance of individual transaction
+                totalpayments       integer     calculates totals number of transactions made on property
+                propertyID          string      ID of property sing ID parameter
+                
+                ALGORITHM  
+                
+                pay <-- ""
+                totalbalance <-- 0
+                pay <-- Table row containing headers for table
+                totalpayments <-- 0 
+                propertyID <-- ID
+                
+                Post propertyID to gettransactions.php
+                    FOR each transaction in transactions DO
+                        
+                        balance <-- singular transaction balance (rent - bill)
+                        totalBalance <-- collective balance of property 
+                        pay <-- Table row containing data from each transaction (Date, rent, bill, balance)
+                        
+                        INSERT pay in table via document.getelementbyID 
+                    END FOR
+                */
+               
+                var pay = ""
+               
+                var totalbalance = 0 
+                pay +=  "<tr>"      
+                pay +=  "<th>Date</th>"          
+                pay +=  "<th>Rent</th>"          
+                pay +=  "<th>Bill</th>"          
+                pay +=  "<th>Balance</th>"          
+                pay +=  "</tr>"
+                var totalpayments = 0
+                var propertyID = ID
+                var posting = $.post("gettransactions.php",
+                    JSON.stringify(ID),
+                    function(transactions){
+                      
+                        $.each( transactions, function(key, transaction){
+                      
+                            pay +=  "<tr>"
+                            
+                            var propertyID = transaction.propertyID
+                            
+                            pay +=  "<td>"+ transaction.date +"</td>"    
+
+                            pay +=  "<td>£ "+ transaction.rent +"</td>"    
+
+                            pay +=  "<td>£ "+ transaction.bill +"</td>" 
+                            
+                            var balance = transaction.rent - transaction.bill
+                            
+                            totalbalance += transaction.rent - transaction.bill
+                            
+                            pay +=  "<td id='balance'>£ "+ balance +"</td>" 
+
+                            pay +=  "</tr>"
+                            
+                            
+                            document.getElementById(transaction.propertyID).innerHTML = pay
+                            
+                        });
+                   
+                    
+              
+                 
+                    
+                });
+     
+            return pay 
+            }
+            function balance(ID, i){
+                // This function generates the balance table values 
+                
+                /*
+                PARAMETERS
+                
+                ID      string      the ID of the given property
+                i       integer     the indiex on the coursel the property is on 
+                
+                VARIABLES 
+                
+                total           string      constructor which will contain the table
+                i               integer     index that the property is on, on the coursel
+                totalbalance    integer     total balance of the property 
+                propertyID      string      ID of the given property 
+                
+                ALGORITHM
+                
+                total <-- ""
+                i <-- i
+                totalbalance <-- 0 
+                
+                total <-- table row with "total balance" header
+                
+                totalpayments <-- 0
+                propertyID <-- ID
+                
+                Post propertyID to gettransactions.php
+                    FOR each transaction DO 
+                        each loop updates the total balance
+                        propertybalance <-- propertyID
+                        balance <-- rent - bills
+                        totalbalance += balance
+                    END FOR 
+                
+                total <-- table row containing totalbalance variable
+                
+                OUTPUT total (table) into coursel via using i in document.getelementbyID(i)
+                
+                */
+                var total = ""
+                var i = i 
+             
+                var totalbalance = 0 
+                
+                total +=  "<tr>"      
+                total +=  "<th>Total Balance</th>"          
+                total +=  "</tr>"
+                
+                var totalpayments = 0
+                var propertyID = ID
+                var posting = $.post("gettransactions.php",
+                    JSON.stringify(ID),
+                    function(transactions){
+                        
+                        $.each( transactions, function(key, transaction){
+                           
+                         
+                            var propertybalance = transaction.propertyID 
+      
+                            var balance = transaction.rent - transaction.bill
+                            
+                            totalbalance += transaction.rent - transaction.bill
+                            
+                            
+                            
+         
+                        });
+                    var propertybalance = propertyID + 1 
+                    
+                    total +=  "<tr>"
+                    total +=  "<td id='balance'>£ "+ totalbalance +"</td>" 
+                    total +=  "</tr>"
+                
+                    total = total.replace("undefined", "");
+                    
+                    
+                    
+                   document.getElementById(i).innerHTML = total
+            })
+        }
+            
+            fillCarousel();
+			verifytoken();
+			
+            $('#carousel').carousel({
+                // Set inteval between coursel moving to next property automatically
+                interval: 10000
+            });
+           
+            
+			;
+        })
+	   
+	
+	
+	
+	</script>
+</head>
+<body>
+	<nav class="navbar navbar-default navbar-fixed-top">
+      <div class="container1">
+        <div class="navbar-header">
+
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+
+          </button>
+        </div>
+        </div>
+        <div class="collapse navbar-collapse" id="myNavbar">
+
+            <center><h1 class="titletext" colour= "#fff" >TFP (Wakefield LTD)</h1></center>
+            <ul class="nav navbar-nav navbar-right">
+
+            <li><a type="button" class="btnloginnorm" id="btnlogout" class="col-lg-3">Logout</a></li>
+            </ul>
+             <ul class="nav navbar-nav navbar-left">
+            <li><a type="button" class="navbtnleft" id="btnhome" >Home</a></li>
+         
+            </ul>
+            
+
+        </div>
+    </nav>
+	
+	<div class="page-title text-center">
+		<center><h3>TFP (Wakefield LTD)</h3></center>
+	</div>
+	
+	<!-- TABLE -->
+    <div class='container-fluid ' id='main'>
+		<div class='row'>
+            <div class="container1">
+              <input type="text" id="myInput"  placeholder="Search for property by postcode" title="Type in a name"><button style='width: 20%; background-color: #FF0000;' id='search' maxlength="11">Search</button>
+              <div id="myCarousel" class="carousel slide" data-ride="carousel">
+                <!-- Indicators -->
+                <ul class="carousel-indicators" id="indicators" style="top: 700px;">
+                    <li data-target="#demo" data-slide-to="0" class="active"></li>
+                    
+                  </ul>
+
+                <!-- The slideshow -->
+                  <div class="carousel-inner" id="carousel">
+                    <div class="item active">
+                        <h3 style='width:100%;'>Property</h3>
+                        
+                        <br>
+                        <p>ID</p>
+                        <br>
+                        <table style="margin-bottom: 100px;">
+                            <tr>
+                                <th>Date</th>
+                                <th>Rent</th>
+                                <th>Bill</th>
+                                <th>Balance</th>
+                            </tr>
+                            <tr>
+                                <td>01/01/2000</td>
+                                <td></td>
+                                <td>£50</td>
+                                <td>-£50</td>
+                            </tr>
+                            <tr>
+                                <td>02/01/2000</td>
+                                <td>£100</td>
+                                <td></td>
+                                <td>£50</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                  </div>
+
+                <!-- Left and right controls -->
+                <a class="left carousel-control" href="#myCarousel" data-slide="prev">
+                  <span class="glyphicon glyphicon-chevron-left"></span>
+                  <span class="sr-only" style="margin-left: 50px;">Previous</span>
+                </a>
+                <a class="right carousel-control" href="#myCarousel" data-slide="next">
+                  <span class="glyphicon glyphicon-chevron-right"></span>
+                  <span class="sr-only">Next</span>
+                </a>
+              </div>
+        </div>
+        </div>
+    </div>
+	
+	
+
+
+	
+	
+</body>
+	
+<style>
+table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+
+tr:nth-child(even) {
+    background-color: #dddddd;
+}
+</style>

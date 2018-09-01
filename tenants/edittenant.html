@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    
+    <title>TFP (Wakefield LTD)</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+
+    <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" type="text/css">
+
+
+    <link rel='stylesheet' href='../css/style.css'>
+	
+	<script>
+		$(document).ready(function(){
+			
+			//function verifytoken(){
+                    /**
+                    *  Functon to check token if login was validated 
+                    
+                    *  VARIABLES
+                    *   sessionStorage.getItem("token")    string   Holds the previosly set value of token from when logged in 
+                    *   token                              key-value pair   Data sent to php document to be validated containing token 
+                    
+                    *  ALGORITHM
+                    
+                    *  IF Token doesn't exist in session storage THEN
+                    *       Send user back to login page
+                    *  END IF 
+                    
+                    *  token <- Object(Token)
+                    *  Post token to verifyJWT.php
+                    *  IF JSON.strigify(Token) != true
+                    *       Send user back to login page
+                    *  ELSE
+                    *       Store login data and continue with session
+                    *  END IF 
+                    
+                    */
+                    
+                    // Checks if there's any token at all if tru returns you to login page 
+                    if(sessionStorage.getItem("token") == null){
+                        alert("No token found")
+                        window.location.assign("../first.html")
+                    }
+                    
+                    // creates key-value pair to be posted
+                    var token = {token: sessionStorage.getItem("token")}
+                    // Posting proccess of sending of key-value pair
+                    var posting = $.post("../navigation/verifyJWT.php",
+                            JSON.stringify(token),
+                                        
+                                function(data){
+                            
+                                // If unsuccessful boot user off page
+                                if(data[0] != true) {
+										alert("Invalid token found.");
+                                        window.location.assign("../first.html")
+									}else{
+                                        // Collect login data 
+                                        var logindata = data[1]
+                                  
+                                        
+                                        // store data in sessionStorage for later use 
+                                        sessionStorage.setItem("landlordID", logindata.userId)
+                                        sessionStorage.setItem("loginTime", logindata.loginTime)
+                                        sessionStorage.setItem("loginDate", logindata.loginDate)
+									  
+                                        
+										
+									}
+                                })
+                }
+                
+                $("#btnlogout").on("click", function(){
+                /**
+                * Logout function 
+               	*
+                *  VARIABLES
+                *   logout    key-value-pair    holds the boolean value of logout to be posted
+				*   logout    string 			String within logoutdata
+				*   true 	  boolean			value of logoutdata
+                *   data      string            Data returned from post to be verified
+                
+                * ALGORITHM
+                
+                * Logoutdata <- Object(Logout:boolean)
+                
+                * Post Logoutdata to logout.php
+                *   IF Success THEN
+                *       Clear session storage
+                *       Send user to login page
+                *   END IF
+                
+                */
+
+                    var logoutdata = {logout:true}
+                    // Posting to logout.php
+                    var posting = $.post("../logout.php",
+                        JSON.stringify(logoutdata),
+                            // Data returned from logout.php
+                            function(data){
+                                // If logout was success
+                                if(data == "success"){
+                                    // Clear session storage 
+                                    sessionStorage.clear()
+                                    // Go to login screen  
+                                    window.location.assign("../first.html");
+                                // End if 
+                                }
+                            // End function 
+                            })
+            // End of logout function 
+            })
+			
+			function checksession(){
+                /* 
+                * Function that makes sure that all existing details have been logged
+                * 
+                * VARIABLES
+                
+                * sessionStorage.getItem("logged")      boolean     verfies if user logged in primary to visiting page
+                * sessionStorage.getItem("Forename")    string      Saved string containing Forename of tenant
+                * sessionStorage.getItem("Surname")     string      Saved string containing Surname of tenant
+                * sessionStorage.getItem("Phone")       string      Saved string containing Phone of tenant
+                * sessionStorage.getItem("Email")       string      Saved string containing Email of tenant
+                * sessionStorage.getItem("dateofmove")  date        Saved date containing date of tenant moving into property
+                
+                * blank                                 string      Empty string to verify other variables
+                * boolean                               boolean     Boolean set to true by default
+                
+                * ALGORITHM
+                
+                * IF all details exist
+                *   OUTPUT input boxes with detailed placeholders
+                * ELSE
+                *   Send user back to previous page
+                * END IF 
+                */
+	
+				var blank = ""
+				var boolean = true
+				if ((console.log(sessionStorage.getItem("logged"))) != boolean) {
+					
+					if ((console.log(sessionStorage.getItem("Forename"))) != blank) {
+						if ((console.log(sessionStorage.getItem("Surname"))) != blank) {
+							
+							if ((console.log(sessionStorage.getItem("Phone"))) != blank) {
+								
+								if ((console.log(sessionStorage.getItem("Email"))) != blank) {
+									
+									if ((console.log(sessionStorage.getItem("dateofmove"))) != blank) {
+										
+
+										var fullname = sessionStorage.getItem("Forename") + "" + sessionStorage.getItem("Surname")
+									
+										var Name = "<input type='text' id='tenantForename1' placeholder='"+ sessionStorage.getItem("Forename") + "' style='border: 0px; height: 10px; text-align: center;' title='Type in a name'><input type='text' id='tenantSurname1' placeholder='"+ sessionStorage.getItem("Surname") + " " + "' style='border: 0px; height: 10px; text-align: center;' title='Type in a name'>"
+
+										var Phone = "<input id='tenantPhone1' placeholder="+ sessionStorage.getItem("Phone") +" class = 'inputbox' title='Type in a phone number'>"
+
+										var Email = "<input id='tenantEmail1' placeholder="+ sessionStorage.getItem("Email") +" class = 'inputbox' title='Type in an email address'>"
+
+										var dateofmove = "<input type='date' id='dateOfMove1' placeholder="+ sessionStorage.getItem("dateofmove") +" class = 'inputbox' style='padding: 12px; padding-left: 20px; padding-right: 20px;' title='Type in the date the tenant moved in.'>"
+										
+										
+										$('#tenantName').html(Name);
+										$('#tenantPhone').html(Phone);
+										$('#tenantEmail').html(Email);
+										$('#dateOfMove').html(dateofmove);
+
+									
+								}
+							}
+						}
+					}
+				}else{
+					window.location.assign("viewtenants.html");
+				}
+				}
+			}
+			
+			
+				
+				$("#btnDone").on("click", function(){
+                    /* 
+                    * Executes saving of changed details
+                    * 
+                    * VARIABLES
+                    
+                    * newForename           string      Collected entered data from input      
+                    * newSurname            string      Collected entered data from input 
+                    * newPhone              string      Collected entered data from input 
+                    * newEmail              string      Collected entered data from input 
+                    * newDate               date        Collected entered data from input 
+                    * newPropertyLink       string      Property selected from database to link tenant across tables
+                    
+                    * ALGORITHM
+                    
+                    * Gather variables from input and assign them to new variables
+                    * Check if any variables are empty
+                    * Create New Data object
+                    * Post new Data to PHP
+                    * Respond accordingly
+                    
+                    */
+					
+					var newForename = $("#tenantForename1").val()
+					var newSurname  = $("#tenantSurname1").val()
+					var newPhone    = $("#tenantPhone1").val()
+					var newEmail    = $("#tenantEmail1").val()
+					var newDate     = $("#dateOfMove1").val()
+                    var newPropertyLink = $("#properties").val()
+ 
+					
+					
+                		
+					// Check if fields are left empty
+					
+					var blank = ""
+				
+					
+					if (newForename == blank) {
+						var newForename = sessionStorage.getItem("Forename")
+				
+					}
+					if (newSurname == blank) {
+						var newSurname = sessionStorage.getItem("Surname")
+					
+					}
+					if (newPhone == blank) {
+						var newPhone = sessionStorage.getItem("Phone")
+				
+					}
+					if (newEmail == blank) {
+						var newEmail = sessionStorage.getItem("Email")
+				
+					}
+					if (newDate == null || newDate == undefined || newDate == "00-00-0000") {
+                     
+						var newDate = sessionStorage.getItem("dateOfMove")
+                        
+				
+					}
+						
+				
+					
+					var newData = {
+						ID:sessionStorage.getItem("ID"),
+						Forename:newForename,
+						Surname:newSurname,
+						Phone:newPhone,
+						Email:newEmail,
+						Date:newDate,
+                        propertyID:newPropertyLink
+                
+					}
+					
+					var posting = $.post("edittenantprofile.php",
+            			JSON.stringify(newData),
+            				function(data){
+                				alert(data)
+            				})
+            				.done(function(){
+                				
+                				window.location.assign("viewtenants.html");
+            				})
+				
+            })
+				
+			function fillRegister(){
+                /* Fills drop box with properties on the database */
+                
+                /*
+                VARIABLES
+                
+                empty           String      Empty string 
+                out             String      Constructor for dropbox, initially empty
+                namespecific    Object      Object containing empty 
+                
+                ALGORITHM
+                
+                Create variables
+                Post namespecific to getproperties.php
+                    Post returns all propertys
+                    Append out with string containing property data
+                    OUTPUT out into html
+                
+                */
+				var empty = ""
+				var out = ""
+				var namespecific = {postcode:empty}
+                var posting = $.post("../properties/getproperties.php",
+                        JSON.stringify(namespecific),
+                        function(properties){
+                        
+                        $.each( properties, function(key, property){
+                                out += "<option value=" + property.postCode +">" + property.addressLine1 + " "+ property.addressLine2 + "</option>";
+                            });
+
+                            $('#properties').html(out);
+                })
+				}
+			
+				
+			
+
+			
+				
+			
+           
+
+            $("#btnhome").on("click", function(){
+                // ONCLICK Send user to navagation page
+                window.location.assign("../navigation/navigation.html");
+            })
+            
+           
+            $("#myInput").on("change", function(){
+                // ON CHANGE CALL loadTenants() Function with new input        
+				input = $("#myInput").val()
+                loadTenants(input)
+            });
+            
+			$("#myInput").on("keyup", function(){
+                // ON KEY UP CALL loadTenants() Function with new input 
+				input = $("#myInput").val()
+                loadTenants(input)
+            });
+            
+			$("#Confirm").on("click", function(){
+                // ON CLICK CALL removetenant() Function
+                removetenant();
+            })
+			
+		
+				
+				
+			
+            
+						
+				
+			
+			
+			
+            function loadTenants(item){
+               /* Function to fill register with tenants depending on the entered surname */
+                
+                /* 
+                PARAMETERS
+                
+                item      String      Contains surname of tenant, can be left empty
+                
+                VARIABLES
+                
+                out             String      Initially empty string which is used to construct register buttons
+                namespecific    Object      Contains item parameter 
+                
+                ALGORITHM
+                
+                out <- ""
+                namespecific <- (Namepart:item)
+                
+                Post namespecific to gettenants.php
+                    Stringify result and for each result construct button
+                OUTPUT out into html
+                
+                */
+                var out = ""
+                var namespecific = {namepart:item}
+                var posting = $.post("gettenants.php",
+                        JSON.stringify(namespecific),
+                        function(tenants){
+                        
+                        $.each( tenants, function(key, tenant){
+                                out += "<li><a href='#' type=button class = 'vertical-menu w3-bar-item w3-button' id="+tenant.tenantID+" >  " + tenant.tenantForename + " "+ tenant.tenantSurname +"</a></li>";
+                                
+                            }) // end loop
+                
+                            $('#tenants').html(out);
+                        }) // end call back function
+                    
+
+                
+                }; // end function
+            
+            
+            function removetenant(){
+                /* 
+                * Remove tenant from database function 
+                
+                * VARIABLES
+                
+                * tenantID      string      String fetched from session storage containing ID of tenant
+                * posting       JSON obj    Sends tenantID off to PHP
+                
+                */
+                
+                var tenantID = sessionStorage.getItem("ID")
+              
+                var tenantID = {ID:tenantID}
+                var posting = $.post("removeTenant.php",
+                        JSON.stringify(tenantID),
+                        function(data){
+                				alert( data );
+            				})
+            				.done(function(){
+                				
+                				window.location.assign("viewtenants.html");
+            				})
+                }
+                
+                    
+        
+                loadTenants($('#myInput').val());  
+				checksession();
+				fillRegister();
+				verifytoken();
+            	});
+			
+        
+        
+		
+		
+	
+	
+	
+	</script>
+</head>
+
+<body>
+    <nav class="navbar navbar-default navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+
+          </button>
+        </div>
+        </div>
+        <div class="collapse navbar-collapse" id="myNavbar">
+
+            <center><h1 class="titletext" colour= "#fff" >TFP (Wakefield LTD)</h1></center>
+            <ul class="nav navbar-nav navbar-right">
+
+            <li><a type="button" class="btnloginnorm" id="btnlogout" class="col-lg-3">Logout</a></li>
+            </ul>
+             <ul class="nav navbar-nav navbar-left">
+            <li><a type="button" class="navbtnleft" id="btnhome" >Home</a></li>
+            </ul>
+            
+
+        </div>
+    </nav>
+	<div class="page-title text-center">
+		<center><h3>TFP (Wakefield LTD)</h3></center>
+	</div>
+	
+	
+	<div class='container-fluid padding-from-nav' id='loadprofile'>
+		<div class='row'>
+			<div>
+				<div id="slider" class='w3-sidebar w3-light-grey w3-bar-block col-md-8 vertical-menu-slidor vertical-menu'>
+					<input type="text" id="myInput" placeholder="Search for names.." title="Type in a name">
+					<div id="tenants"> </div>
+				</div>
+			</div>
+			
+			<div id="profile">
+				<div id='profile-picture' class='col-lg-10 profilepicture'>
+					<img src="../images/img_avatar2.png" alt="Avatar" class='profilepic'>
+                    <button type="button" class="removeprofile" id="btnremovetenant" onclick="document.getElementById('id01').style.display='block'">Remove Profile</button>
+			</div>
+				
+			<div class='profileinformation'>
+				<form>
+					<center>
+						<div class='harrybox' >
+							<center><h3 id="tenantName"></h3></center>
+						</div>
+						<div class='harrybox' >
+							<center><h3 id="tenantPhone" ></h3></center>
+						</div>
+						<div class='harrybox' >
+							<center><h3 id="tenantEmail"></h3></center>
+						</div>
+						<div class='harrybox' >
+							<center><h3 id="dateOfMove"></h3></center>
+						</div>
+						<div style='margin-top: 40px;' class="form-group">
+                            <label for="Properties">Choose property for tenant</label>
+								  <select name="Property" id="properties"></select>
+                        </div>
+
+						<button type="button" class="editbutton" id="btnDone" >Done</button>
+					</center>
+				</form>
+			</div>
+
+			</div>
+		</div>
+    </div>
+	
+
+<!-- The Modal -->
+<link rel='stylesheet' href='css/style.css'>
+    <div id="id01" class="modal" >
+	   <span onclick="document.getElementById('id01').style.display='none'" class="close" title="Close Modal">&times;</span>
+
+	   <!-- Modal Content -->
+        <form class="modal-content animate" style='top: 100px;'>
+           <center>
+                <div class="container">
+
+                    <br>
+                      <h3>Are you sure you want to remove this profile?</h3>
+                    <br>
+                  <button type="button" class="loginbtn" id="Confirm">Delete Profile</button>
+
+                   <button type="button" onclick="document.getElementById('id01').style.display='none'" class="cancelbtn">Cancel</button>
+                </div>
+            </center>
+        </form>
+    </div>
+        
+	
+
+	
+<script>
+// Get the modal
+var modal = document.getElementById('id01');
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+</script>
+	
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+#myInput {
+  width: 100%;
+  font-size: 16px;
+  padding: ;
+  border: 0px solid #ddd;
+
+}
+
+#tenants {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+#tenants li a {
+  border: 1px solid #ddd;
+  margin-top: -1px; /* Prevent double borders */
+  background-color: #f6f6f6;
+  padding: 10px;
+  text-decoration: none;
+  font-size: 18px;
+  color: black;
+  display: block
+}
+
+#tenants li a:hover:not(.header) {
+  background-color: #eee;
+}
+</style>
+	
+
+    
+
+
+</body>
+</html>

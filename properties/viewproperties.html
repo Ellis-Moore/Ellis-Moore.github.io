@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    
+    <title>TFP (Wakefield Ltd) </title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" type="text/css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link rel='stylesheet' href='../css/style.css'>
+	
+	<script>
+		$(document).ready(function(){
+		
+				// function verifytoken(){
+                    /**
+                    *  Functon to check token if login was validated 
+                    
+                    *  VARIABLES
+                    *   sessionStorage.getItem("token")    string   Holds the previosly set value of token from when logged in 
+                    *   token                              key-value pair   Data sent to php document to be validated containing token 
+                    
+                    *  ALGORITHM
+                    
+                    *  IF Token doesn't exist in session storage THEN
+                    *       Send user back to login page
+                    *  END IF 
+                    
+                    *  token <- Object(Token)
+                    *  Post token to verifyJWT.php
+                    *  IF JSON.strigify(Token) != true
+                    *       Send user back to login page
+                    *  ELSE
+                    *       Store login data and continue with session
+                    *  END IF 
+                    
+                    */
+                    
+                    // Checks if there's any token at all if tru returns you to login page 
+                    if(sessionStorage.getItem("token") == null){
+                        alert("No token found")
+                        window.location.assign("../first.html")
+                    }
+                    
+                    // creates key-value pair to be posted
+                    var token = {token: sessionStorage.getItem("token")}
+                    // Posting proccess of sending of key-value pair
+                    var posting = $.post("../navigation/verifyJWT.php",
+                            JSON.stringify(token),
+                                        
+                                function(data){
+                              
+                                // If unsuccessful boot user off page
+                                if(data[0] != true) {
+										alert("Invalid token found.");
+                                        window.location.assign("../first.html")
+									}else{
+                                        // Collect login data 
+                                        var logindata = data[1]
+                                      
+                                        
+                                        // store data in sessionStorage for later use 
+                                        sessionStorage.setItem("landlordID", logindata.userId)
+                                        sessionStorage.setItem("loginTime", logindata.loginTime)
+                                        sessionStorage.setItem("loginDate", logindata.loginDate)
+									
+                                        
+										
+									}
+                                })
+                }
+                
+                $("#btnlogout").on("click", function(){
+                /**
+                * Logout function 
+               	*
+                *  VARIABLES
+                *   logout    key-value-pair    holds the boolean value of logout to be posted
+				*   logout    string 			String within logoutdata
+				*   true 	  boolean			value of logoutdata
+                *   data      string            Data returned from post to be verified
+                
+                * ALGORITHM
+                
+                * Logoutdata <- Object(Logout:boolean)
+                
+                * Post Logoutdata to logout.php
+                *   IF Success THEN
+                *       Clear session storage
+                *       Send user to login page
+                *   END IF
+                
+                */
+
+                    var logoutdata = {logout:true}
+                    // Posting to logout.php
+                    var posting = $.post("../logout.php",
+                        JSON.stringify(logoutdata),
+                            // Data returned from logout.php
+                            function(data){
+                                // If logout was success
+                                if(data == "success"){
+                                    // Clear session storage 
+                                    sessionStorage.clear()
+                                    // Go to login screen  
+                                    window.location.assign("../first.html");
+                                // End if 
+                                }
+                            // End function 
+							})
+				// End of logout function 
+				})
+                
+                $("#btnhome").on("click", function(){
+                    // ONCLICK send user to navigation page  
+					window.location.assign("../navigation/navigation.html");
+				})
+                
+				 $("#btneditprofile").on("click", function(){
+                    // ONCLICK send user to editproperty page
+					window.location.assign("editproperty.html");
+				 })
+				 
+				 $("#btnNewProperty").on("click", function(){
+                     // ONCLICK send user to newProperty page 
+					 window.location.assign("newProperty.html")
+				 })
+
+
+				$("#myInput").on("change", function(){
+                        // capture input
+						input = $("#myInput").val()
+				        // use input to run function
+						loadProperties(input)
+						});
+				$("#myInput").on("keyup", function(){
+                        // capture input
+						input = $("#myInput").val()
+				        // use input to run function
+						loadProperties(input)
+						});
+
+				$("#properties").on("click", ".w3-bar-item", function(){
+                    // Capture ID from selected button with class condition
+					id = $(this).attr("id")
+				    // Use ID to run function
+					specificProperty(id)
+					})
+
+
+
+				function specificProperty(item){
+                    /* This Sub-routine is used to collect data from the database concerning the Given ID */
+                
+                    /*
+                    PARAMETERS
+
+                    item        string      The ID of he selected property
+
+                    VARIABLES
+
+                    addressLine1    String      Will contain the first address line of the selected propery
+                    addressLine2    String      Will contain the second address line of the selected propery
+                    addressLine3    String      Will contain the third address line of the selected propery
+                    postCode        String      Will contain the PostCode of the selected property
+                    propertyID      String      Will contain the ID of the selected property
+                    tenantID        String      Will contain the ID of th selected propertys' tenant
+                    tenantName      String      Initially empty string which will contain the name of the tenant
+                    id              Object      Contains the id of he selected property given by the parameter item
+
+                    ALGORITHM
+
+                        ESTABLISH VARIABLES
+                        Post id Object to loadproprty.php
+                            Update variables with response from PHP
+                        OUTPUT Updated variables
+                        Save Updated variables in session storage
+                        Get tenantName for property via posting the tenantID to loadtenant.php
+                            Update tenantName variable
+                        OUTPUT tenantName
+                        
+
+
+                    */
+					var addressline1  = " "
+					var addressline2  = " "
+					var addressline3  = " "
+					var postCode	  = " "
+					var propertyID    = " "
+					var tenantID      = " "
+
+					var id = {id:item}
+				
+					var posting = $.post("loadproperty.php",
+								JSON.stringify(id),
+								function(loaddetails){
+								// sql details
+									//
+									 $.each( loaddetails, function(key, property){
+										addressline1 += property.addressLine1 ;
+										addressline2 += property.addressLine2 ;
+										addressline3 += property.addressLine3 ;
+										postCode     += property.postCode ;
+
+										propertyID = property.propertyID
+										tenantID = property.tenantID
+
+									 })
+								$('#addressline1').html(addressline1);
+								$('#addressline2').html(addressline2);
+								$('#addressline3').html(addressline3);
+								$('#postCode').html(postCode);
+                        
+                                sessionStorage.setItem("ID", propertyID)
+
+								sessionStorage.setItem("addressLine1", addressline1)
+								sessionStorage.setItem("addressLine2", addressline2)
+								sessionStorage.setItem("addressLine3", addressline3)
+								sessionStorage.setItem("postCode", postCode)
+                                
+								sessionStorage.setItem("tenantID", tenantID)
+                         
+
+							
+								var tenantName = " "
+								var id = {id: sessionStorage.getItem("tenantID")}
+								
+								var posting = $.post("../tenants/loadtenant.php",
+													JSON.stringify(id),
+													 function(loaddetails1){
+														// sql details 
+														$.each( loaddetails1, function(key, tenant){
+															tenantName += "<center><h3>"+ tenant.tenantForename + " " + tenant.tenantSurname +" </h3></center>";
+
+															$("#tenantName").html(tenantName)
+															})
+								})
+
+								})
+				};
+
+
+				function loadProperties(item){
+                    /* Fills vertical with properties on the database */
+                
+                    /*
+                    PARAMETERS
+                    
+                    item        String      Potentially contains the PostCode for a property but can be empty
+                    VARIABLES
+
+                    out             String      Constructor for verticla menu, initially empty
+                    namespecific    Object      Object containing item
+
+                    ALGORITHM
+
+                    Create variables
+                    Post namespecific to getproperties.php
+                        Post returns all propertys
+                        Append out with string containing property data
+                        OUTPUT out into html
+
+                    */
+					var out = ""
+					var namespecific = {postcode:item}
+					var posting = $.post("getproperties.php",
+							JSON.stringify(namespecific),
+							function(properties){
+
+							$.each( properties, function(key, property){
+									out += "<li><a href='#' class = 'vertical-menu w3-bar-item w3-button' id="+ property.propertyID +"> " + property.addressLine1 + " " + property.addressLine2 + "</a></li>";
+								});
+
+								$('#properties').html(out);
+					})
+					}
+
+
+			loadProperties($('#myInput').val());
+			verifytoken();
+			});
+
+	
+	
+	
+	
+	</script>
+</head>
+
+<body>
+    <nav class="navbar navbar-default navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+
+          </button>
+        </div>
+        </div>
+        <div class="collapse navbar-collapse" id="myNavbar">
+
+            <center><h1 class="titletext" colour= "#fff" >TFP (Wakefield LTD) </h1></center>
+            <ul class="nav navbar-nav navbar-right">
+
+            <li><a type="button" class="btnloginnorm" id="btnlogout" class="col-sm-3">Logout</a></li>
+            </ul>
+             <ul class="nav navbar-nav navbar-left">
+            <li><a type="button" class="navbtnleft" id="btnhome" >Home</a></li>
+            <li><a type="button" class="navbtnleft" id="btnNewProperty" >New Property</a></li>
+            </ul>
+            
+
+        </div>
+    </nav>
+	<div class="page-title text-center">
+		<center><h3>TFP (Wakefield LTD) </h3></center>
+	</div>
+  
+	<div class='container-fluid ' id='main'>
+		<div class='row'>
+            
+			<div id="slider" class='w3-sidebar w3-light-grey w3-bar-block col-md-8 vertical-menu-slidor vertical-menu'>
+                <input type="text" id="myInput" placeholder="Search for names.." title="Type in a name">
+                <div id="properties"> </div>
+            </div>
+			<div class='col-md-8'></div>
+			
+			<div id="profile">
+				<div id='profile-picture' class='col-lg-10 profilepicture'>
+					<img src="../images/home.png" alt="Avatar" class='profilepic'>
+			</div>
+				
+			<div class='profileinformation'>
+				<form>
+				<center>
+					<div class='harrybox' >
+						<center><h3 id="addressline1"></h3></center>
+					</div>
+					<div class='harrybox' >
+						<center><h3 id="addressline2"></h3></center>
+					</div>
+					<div class='harrybox' >
+						<center><h3 id="addressline3"></h3></center>
+					</div>
+					<div class='harrybox' >
+						<center><h3 id="postCode"></h3></center>
+					</div>
+					<div class='harrybox' id="tenantName"></div>
+					<div><button type = "button" class="editbutton" id="btneditprofile" >Edit Profile</button></div>
+                </center>   
+				</form>
+			</div>
+
+			</div>
+			   
+		</div>
+	</div>
+<style>
+	
+* {
+  box-sizing: border-box;
+}
+
+#myInput {
+  width: 100%;
+  font-size: 16px;
+  padding: ;
+  border: 0px solid #ddd;
+
+}
+
+#properties {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+#properties li a {
+  border: 1px solid #ddd;
+  margin-top: -1px; /* Prevent double borders */
+  background-color: #f6f6f6;
+  padding: 10px;
+  text-decoration: none;
+  font-size: 18px;
+  color: black;
+  display: block
+}
+
+#properties li a:hover:not(.header) {
+  background-color: #eee;
+}
+</style>
+    
+    <div>
+    </div>
+</body>
+</html>
