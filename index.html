@@ -1,4 +1,4 @@
-w<!DOCTYPE html>
+
 <?php 
 			require_once 'login-files/access.php' ;
 			require_once 'login-files/config.php';
@@ -14,140 +14,122 @@ w<!DOCTYPE html>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-    <link rel="stylesheet" href="CSS.css">
+    <link rel="stylesheet" href="Dashboard.css">
     <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
     
     <script>
-        $(document).ready(function(){
-            $("#loginbtn").on( "click", function(){
-                    // Call getLogin function upon pressing login button
-					getlogin()
-            })
-            $("#uname").on( "keyup", function(event){
-                if (event.keyCode === 13) {
-                    getlogin();
-                }
-            })
-            $("#psw").on( "keyup", function(event){
-                if (event.keyCode === 13) {
-                    getlogin();
-                }
-            })
-            
-            
-            function getlogin(){
-					/* 
-                    Purpose of this function is to collect entered data to login a potential user in 
+        $(document).ready(function(){  
+            // function verifytoken(){
+                    /**
+                    *  Functon to check token if login was validated 
                     
-                    VARIABLES
+                    *  VARIABLES
+                    *   sessionStorage.getItem("token")    string   Holds the previosly set value of token from when logged in 
+                    *   token                              key-value pair   Data sent to php document to be validated containing token 
                     
-                    login       key-value-pair  object containing entered username and password
-                    posting     JSON post       Sends login object to PHP file to be validataed
-                    Wronglogins Integer         Collects number of wrong login attempts made by user 
-                    out         String          String containing messgae about how too mnay logins have been made
-                    token       String          Token created for user
+                    *  ALGORITHM
                     
-                    ALGORITHM 
+                    *  IF Token doesn't exist in session storage THEN
+                    *       Send user back to login page
+                    *  END IF 
                     
-                    Login <- Object (username, password)
+                    *  token <- Object(Token)
+                    *  Post token to verifyJWT.php
+                    *  IF JSON.strigify(Token) != true
+                    *       Send user back to login page
+                    *  ELSE
+                    *       Store login data and continue with session
+                    *  END IF 
                     
-                    IF Username or password are not empty THEN 
-                        Post Login Object to Login.php
-                            Record response and act accordingly
-                            IF Response != "Succes" (String) THEN
-                                IF Wrong login THEN
-                                    OUTPUT number of wrong attempts
-                                END IF
-                                IF too many atempts THEN
-                                    OUTPUT too many login attempts
-                                END IF
-                            ELSE
-                                Store token
-                                Store Username
-                                Send user to navigation page
-                            END IF
-                    END IF
                     */
-					
-                
-                    var login = {username : $("#uname").val(), password : $("#psw").val() }
                     
-                    if ($("#uname").val() != "" && $("#psw").val() != "") {
-                        var posting = $.post("Login-files/login.php",JSON.stringify(login),
-                        function(data){
-                            
-                            if(data[0] != "success") {
-                                
-                               if(data[0] == "wronglogin"){
-									var wronglogins = data[1][0].wrong_logins 
-                                    wronglogin(wronglogins)
-                                }
-                                
-								if(data[0] == "Unpermitted"){
-									var out = "<font color='red' > Too many login attempts made.</font>" 
-								    $('#wronglogins').html(out)
-								}
-                                
-                            }else{
-                                
-                                var token = data[1]
-                                sessionStorage.setItem("token", token)
-                                sessionStorage.setItem("Username", data[2])
-                                window.location.assign("bounce.html")
-                                
-                            }
-                        })
-                        .done(function(msg) {})
+                    // Checks if there's any token at all if true returns you to login page 
+                    if(sessionStorage.getItem("token") == null){
+                        alert("No token found")
+                        window.location.assign("../first.html")
                     }
-
+                    
+                    // creates key-value pair to be posted
+                    var token = {token: sessionStorage.getItem("token")}
+                    // Posting proccess of sending of key-value pair
+                    var posting = $.post("Login-files/verifyJWT.php",
+                            JSON.stringify(token),
+                                        
+                                function(data){
+                               
+                                // If unsuccessful boot user off page
+                                if(data[0] != true) {
+										alert("Invalid token found.");
+                                        window.location.assign("index.html")
+									}else{
+                                        // Collect login data 
+                                        var logindata = data[1]
+                                        
+                                        console.log(logindata)
+                                        // store data in sessionStorage for later use 
+                                        sessionStorage.setItem("landlordID", logindata.userId)
+                                        sessionStorage.setItem("loginTime", logindata.loginTime)
+                                        sessionStorage.setItem("loginDate", logindata.loginDate)
+                                        sessionStorage.setItem("username", logindata.username)
+									    
+                                        
+										
+									}
+                                })
+                }
+            setTimeout(function() {
+                var content = "<label><b>Username : </b>"+ sessionStorage.getItem("username") +"</label><br>"
+                content += "<label><b>ID : </b>"+ sessionStorage.getItem("landlordID") + "</label><br>"
+                content += "<label><b>Logged in since : </b> "+ sessionStorage.getItem("loginTime") +"</label><br>"
+                $("#ProfileSlab").html(content)
+            }, 500);
+            function profile(){
+                
             }
-            function wronglogin(wronglogins){
-            /*
-            This function outputs the number of wrong login attempts made on account 
-
-            VARIABLES 
-                out     string      used to be outputted to display number of wrong login attempts 
-
-            */
-            var out = ""
-            out += "<font color='red' > Wrong logins : "+  wronglogins +"</font>" 
-            $('#wronglogins').html(out)
-        }
+            
+            verifytoken();
+            profile();
+            
         })
         
     </script>
 </head>
     
 <body background="images/shattered-island.gif">
-    <center>
-        <div class="container">
-            <div class="jumbotron">
-                <h2 class="header" style="color:#A9A9A9;">Tranter Finance & Property</h2>
-                <h3 style="color:#A9A9A9;">Property management tool</h3>
-            </div>
-            <div class="container">
-                    <div class="container login-form">
-                                              
-                        <label><b>Username</b></label>
-                        <input type="text" placeholder="Enter Username" name="uname" id="uname" required>
-                        <br>
-                        <label><b>Password</b></label>
-                        <input type="password" placeholder="Enter Password" name="psw" id="psw" required>
-                        <br>
-                        <input type=submit value="Log in"  id="loginbtn" >
-                        <!--<button type="button" style="margin-top:20px;" id="loginbtn" onclick="return getlogin();">Login</button> -->
-
-                        <br>
-                        <div id="wronglogins"> 
-                        </div>
-                    </div>
-               
-            </div>
+    <nav class="navbar navbar-default navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
         </div>
-    </center>
-    
-   
-  
-    
+        </div>
+        <div class="collapse navbar-collapse" id="myNavbar">
+            <center><h2 class="titletext" colour= "#fff" >TFP (Wakefield LTD) </h2></center>
+        </div>
+    </nav>
+    <br>
+        
+    <div class="col-sm-1 tool-box" >
+        <ul>
+          <li><a href="dashboard.html">Dashboard</a></li>
+          <li><a href="tenants/tenantview.html">Tenants</a></li>
+          <li><a href="properties/propertyview.html">Properties</a></li>
+          <li><a href="about.asp">About</a></li>
+          <br>
+          <li><a class="logoutbtn" href="index.html">Logout</a></li>
+        </ul>
+    </div>
+
+    <div class="col-sm-9 box">
+        <img src="images/blank-avatar.png" alt="Avatar" class="col-sm-3 avatar">
+        <div id="ProfileSlab"></div>
+    </div>
+    <div class="col-sm-1 contactbox">
+        <center>
+            <label>Contact Information</label><br><br>
+            <p1>Reception number :  07957970570</p1><br>
+            <p1>Desk number : 07957970570</p1><br>
+            <p1>Personal number : 07957970570</p1><br>
+            <p1>E-mail : example@jrnaylors.com</p1><br>
+        </center>
+    </div>    
 </body>
 </html>
